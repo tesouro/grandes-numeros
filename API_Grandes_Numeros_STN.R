@@ -11,10 +11,10 @@ library(tidyverse)
 #* @serializer unboxedJSON
 #* @get /estoque_dpf
 function(formato = "string"){
-  tb_ckan<-resource_show(id="0402cb77-5e4c-4414-966f-0e87d802a29a",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="0402cb77-5e4c-4414-966f-0e87d802a29a",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="0402cb77-5e4c-4414-966f-0e87d802a29a",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="0402cb77-5e4c-4414-966f-0e87d802a29a",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -31,7 +31,7 @@ function(formato = "string"){
       unidade <- "tri"
       num<-num/1000
     }
-    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade))
+    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade, " (",ult_mes,")"))
     #data.frame("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade))
     #num<-paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade)
     #return (num)
@@ -48,10 +48,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /emissoes_dpf
 function(formato="string"){
-  tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -69,7 +69,7 @@ function(formato="string"){
       num<-num/1000
     }
     #data.frame("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade))
-    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade))
+    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade, " (",ult_mes,")"))
   }
 }
 
@@ -79,10 +79,10 @@ function(formato="string"){
 #* @serializer unboxedJSON
 #* @get /resgate_dpf
 function(formato = "string"){
-  tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="bf69babd-ac07-40ce-90ff-c8e07ec8c8bf",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -100,7 +100,7 @@ function(formato = "string"){
       num<-num/1000
     }
     #data.frame("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade))
-    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade)) 
+    list("num"=paste0("R$", format(round(num,1), digits=2, decimal.mark=",")," ", unidade, " (",ult_mes,")")) 
   }
 }
 
@@ -110,10 +110,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /resultado_primario
 function(formato = "string"){
-  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -125,7 +125,7 @@ function(formato = "string"){
   
   unidade<- as.character(df_rtn[1,1])
   
-  num <- as.numeric(sum(as.numeric(df_rtn[74,pos_ano_corrente])))
+  num <- as.numeric(sum(as.numeric(df_rtn[71,pos_ano_corrente])))
   if (formato=="df"){
     data.frame("num" = num, "unidade" = unidade, "ult_mes" = ult_mes)
   } else {
@@ -145,10 +145,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /receita_primaria_liquida
 function(formato = "string"){
-  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -185,10 +185,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /despesa_primaria_total
 function(formato = "string"){
-  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -228,8 +228,8 @@ function(formato = "string"){
   load(file ="dt_ultima_atualizacao.RData")
   
   
-  tb_ckan<-resource_show(id="a66311e0-fb60-4354-b6d4-5ed3dbe7b297",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="a66311e0-fb60-4354-b6d4-5ed3dbe7b297",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="a66311e0-fb60-4354-b6d4-5ed3dbe7b297",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="a66311e0-fb60-4354-b6d4-5ed3dbe7b297",url="https://www.tesourotransparente.gov.br/ckan/")
   
   
   if (tb_ckan$last_modified == dt_ultima_atualizacao){
@@ -248,7 +248,7 @@ function(formato = "string"){
   dt_ultima_atualizacao<- tb_ckan$last_modified 
   save(file= "dt_ultima_atualizacao.RData", list = ("dt_ultima_atualizacao"))  
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -300,10 +300,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /despesa_pessoal_por_RCL
 function(formato = "string"){
-  tb_ckan<-resource_show(id="92580d1e-0e30-45c9-9aa1-7a05586a30da",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="92580d1e-0e30-45c9-9aa1-7a05586a30da",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="92580d1e-0e30-45c9-9aa1-7a05586a30da",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="92580d1e-0e30-45c9-9aa1-7a05586a30da",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.csv")
   tmp = tempfile(fileext = ".csv")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -329,10 +329,10 @@ function(formato = "string"){
 #* @serializer unboxedJSON
 #* @get /limite_pag_total_exec_federal
 function(formato = "string"){
-  tb_ckan<-resource_show(id="51077823-a7a6-4df4-9b8f-ccfd44a8053b",url="https://apickan.tesouro.gov.br/ckan")
-  #tb_ckan<-resource_show(id="51077823-a7a6-4df4-9b8f-ccfd44a8053b",url="http://www.tesourotransparente.gov.br/ckan/")
+  #tb_ckan<-resource_show(id="51077823-a7a6-4df4-9b8f-ccfd44a8053b",url="https://apickan.tesouro.gov.br/ckan")
+  tb_ckan<-resource_show(id="51077823-a7a6-4df4-9b8f-ccfd44a8053b",url="https://www.tesourotransparente.gov.br/ckan/")
   URL_add <- tb_ckan$url
-  URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
+  #URL_add<-gsub("https://www.tesourotransparente.gov.br","https://apickan.tesouro.gov.br",URL_add)
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
@@ -354,5 +354,7 @@ function(formato = "string"){
     
   }
 }
+
+
 
 
