@@ -9,6 +9,7 @@ library(stringr)
 library(rtn)
 library(gganimate)
 library(RColorBrewer)
+library(ggrepel)
 
 
 tema <- function(){
@@ -256,24 +257,32 @@ function(formato = "string"){
   limites %>%
     mutate(ano = str_sub(referencia, str_length(referencia)-3,str_length(referencia)))
 
-  ano_max<- max(limites$ano)
 
-  teto<-
-    (limites %>%
-    filter(discriminacao=="VI. TOTAL",
-           ano==ano_max))$valor
 
 
 
   package<- ckanr::package_show(id="8675a0a4-31c5-4593-a24d-fb8e17376eca",
                                 url="https://www.tesourotransparente.gov.br/ckan")
 
-  URL_add<- package[["resources"]][[1]][["url"]]
+  URL_add<- package[["resources"]][[2]][["url"]]
   tmp = paste(getwd(),"temp.xlsx")
   tmp = tempfile(fileext = ".xlsx")
   download.file(URL_add,mode = "wb", destfile = tmp)
 
   desp_sujeita_teto<- read_xlsx(tmp,sheet = 3,skip = 3, col_names = TRUE)[1,2]
+
+
+
+
+  ano_corrente<-  names(desp_sujeita_teto)
+
+  teto<-
+    (limites %>%
+       filter(discriminacao=="VI. TOTAL",
+              ano==ano_corrente))$valor
+
+
+
 
   num<- (desp_sujeita_teto[1,1]/(teto*10^6))*100
 
@@ -725,8 +734,8 @@ function(){
         Rubrica == "4.2  Pessoal e Encargos Sociais" ~ "Pessoal",
         Rubrica == "4.3.07  Créditos Extraordinários (exceto PAC)" ~ "Créd. extra",
         Rubrica == "4.4.1.2 Bolsa Família e Auxílio Brasil" ~ "Renda mínima",
-        Rubrica == "4.4.2.1 Saúde" ~ "Saúde",
-        Rubrica == "4.4.2.2 Educação" ~ "Educação"
+        Rubrica == "4.4.2.1 Saúde" ~ "Saúde discric.",
+        Rubrica == "4.4.2.2 Educação" ~ "Educação discric."
       )) %>%
       ggplot( aes(x = Data, y = valor_atualizado, group = classificador, color = str_wrap(classificador,10))) +
       geom_line(size = 1) +
