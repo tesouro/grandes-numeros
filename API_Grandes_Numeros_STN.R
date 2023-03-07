@@ -515,6 +515,7 @@ function(){
             axis.title.y = element_blank(),
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank(),
+            axis.text.x = element_text(angle=90),
             plot.background = element_rect(color = "#f0f5f7", linetype = "solid", size = 2))
 
     #grafico_linha
@@ -650,6 +651,7 @@ function(){
             axis.title.y = element_blank(),
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank(),
+            axis.text.x = element_text( angle=90),
             plot.background = element_rect(color = "#f0f5f7", linetype = "solid", size = 2))
     # observações: se vc setar o ylim(), a área deixa de aparecer. para mantê-la, é preciso setar o ylim como parâmetro do coord_cartesian(). Da documentação (https://ggplot2.tidyverse.org/reference/lims.html):
     # "For changing x or y axis limits without dropping data observations, see coord_cartesian()."
@@ -750,36 +752,25 @@ function(){
       ) +
       tema() +
       theme(legend.position = 'right') +
-      theme(axis.text = element_text(size = 10, family = "Open Sans Condensed Light"), # era 10
+      theme(axis.text = element_text(size = 14, family = "Open Sans Condensed Light", angle=90), # era 10
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank(),
             axis.title.y = element_blank(),
-            legend.text = element_text(size = 12, family = "Open Sans Condensed Light"),
-            legend.title = element_text(size = 13, family = "Open Sans Condensed Light"),
+            legend.text = element_text(size = 16, family = "Open Sans Condensed Light"),
+            legend.title = element_text(size = 17, family = "Open Sans Condensed Light"),
             plot.background = element_rect(color = "#f0f5f7", linetype = "solid", size = 2)) +
       labs(color= "Classificador")
 
     # aqui tinha um problema. com o expand tão grande, a escala continuava até sei lá quanto (2025, acho). para resolver isso tentei usar o `limits`. Não resolveu. aí resolvi setar mais ou menos manualmente, bom breaks e labels no lugar de date_breaks e date_labels. Mas eu tinha deixado o limits, então o geom_text não estava sendo escrito, pq ficou fora do limite.
     graf_desp_para_gif <- graf_linhas_desp +
-      #geom_segment(aes(xend = ultimo_periodo, yend = valor_atualizado), linetype = 2) +
       geom_point(size = 3) +
 
       geom_text_repel(aes(label = paste(str_pad(round(valor_atualizado/10^3, 0), width = 3, pad = " "))), #,enc2native(classificador)
                       hjust = 1,
+                      size = 7,
                       #nudge_y = c(0,0,30,-30,0,0),
                       direction = "both")
 
-      # geom_text(aes(x = ultimo_periodo + 50,
-      #               label = paste(
-      #                 str_pad(round(valor_atualizado/10^3, 0), width = 3, pad = " "),
-      #                 enc2native(classificador)),
-      #               y = ifelse(Data < ultimo_periodo,
-      #                          valor_atualizado,
-      #                          valor_atualizado + c(20, 0, 5, -15,0 , 5))),
-      #           hjust = 0, family = "Open Sans Condensed Light",
-      #           size = 6) #não tinha definido
-
-    #graf_desp_para_gif <- graf_linhas_desp
 
 
     gif_linhas_desp <- graf_desp_para_gif +
