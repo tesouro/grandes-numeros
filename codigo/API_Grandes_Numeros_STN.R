@@ -11,6 +11,31 @@ library(gganimate)
 library(RColorBrewer)
 library(ggrepel)
 
+encontrar_na_planilha <- function(arquivo, sheetNumber, columnNumber, texto) {
+  # Ler a planilha
+  planilha <- readxl::read_xlsx(arquivo, sheet = sheetNumber)
+
+  # Pegar a coluna especificada
+  coluna_especificada <- planilha[, columnNumber]
+
+  print("coluna_especificada")
+  print(coluna_especificada)
+
+  # Iniciar um loop para percorrer todas as células na coluna
+  for (i in 1:nrow(coluna_especificada)) {
+    # Se for um texto, verificar se inicia com o texto
+    if(!is.na(as.character(coluna_especificada[i, 1]))) {
+      if (startsWith(as.character(coluna_especificada[i, 1]), texto)) {
+        # Se iniciar, retornar o número da linha
+        return(i)
+      }
+    }
+    
+  }
+
+  # Se o loop terminar sem encontrar uma correspondência, retornar NULL
+  return(NULL)
+}
 
 tema <- function(){
   theme_minimal() +
@@ -116,9 +141,9 @@ get_full_data <- function(){
   #   dplyr::mutate(id=  dplyr::row_number()) %>%
   #   dplyr::select(Rubrica, id)
 
+  linha_IPCA <- encontrar_na_planilha(tmp, 3, 1, "Deflator - IPCA")
 
-
-  deflator_IPCA <- readxl::read_xlsx(tmp,sheet = 3,skip = 74,n_max = 1, col_names = FALSE)
+  deflator_IPCA <- readxl::read_xlsx(tmp,sheet = 3,skip = linha_IPCA,n_max = 1, col_names = FALSE)
   names(deflator_IPCA)<-names(rtn_receita)
   names(rtn_despesa) <-names(rtn_receita)
 
