@@ -716,6 +716,9 @@ function(){
 
   con <- file(file_periodo, "rb")
 
+  # Copiar o arquivo para o /home
+  file.copy(file_periodo, "/home/graf_resultado_primario.gif")
+
   img <- readBin(con, "raw", file.info(file_periodo)$size)
 
   close(con)
@@ -848,6 +851,9 @@ function(){
 
   img <- readBin(con, "raw", file.info(file_periodo)$size)
 
+  # Copiar o arquivo para o /home
+  file.copy(file_periodo, "/home/graf_estoque_divida.gif")
+
   close(con)
 
   img
@@ -966,6 +972,9 @@ function(){
 
 
   con <- file(file_periodo, "rb")
+
+  # Copiar o arquivo para o /home
+  file.copy(file_periodo, "/home/graf_despesas_governo.gif")
 
   img <- readBin(con, "raw", file.info(file_periodo)$size)
 
