@@ -983,3 +983,27 @@ function(){
   img
 
 }
+
+#* @get /graf_despesas_governo.gif
+function(res){
+  res$setHeader("Content-Type", "image/gif")
+  res$body <- readBin("/home/graf_despesas_governo.gif", "raw", file.info("/home/graf_despesas_governo.gif")$size)
+  
+  res
+}
+
+#* @get /graf_resultado_primario.gif
+function(res){
+  res$setHeader("Content-Type", "image/gif")
+  res$body <- readBin("/home/graf_resultado_primario.gif", "raw", file.info("/home/graf_resultado_primario.gif")$size)
+  
+  res
+}
+
+#* @get /graf_estoque_divida.gif
+function(res){
+  res$setHeader("Content-Type", "image/gif")
+  res$body <- readBin("/home/graf_estoque_divida.gif", "raw", file.info("/home/graf_estoque_divida.gif")$size)
+  
+  res
+}
