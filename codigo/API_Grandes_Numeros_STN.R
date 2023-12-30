@@ -10,6 +10,16 @@ library(stringr)
 library(gganimate)
 library(RColorBrewer)
 library(ggrepel)
+library(future)
+
+plan(multisession)
+
+futures <- list()
+
+
+get_future_result <- function(id) {
+  return(future::value(futures[[id]]))
+}
 
 encontrar_na_planilha <- function(arquivo, sheetNumber, columnNumber, texto) {
   # Ler a planilha
@@ -612,10 +622,8 @@ function(formato = "string"){
 }
 
 
-#* Gráfico do resultado primário do governo central
-#* @serializer contentType list(type = "image/gif")
-#* @get /graf_resultado_primario
-function(){
+
+gera_graf_resultado_primario <- function(){
   recurso_TT <- resource_show(id="527ccdb1-3059-42f3-bf23-b5e3ab4c6dc6",
                               url="http://www.tesourotransparente.gov.br/ckan")
   download.file(recurso_TT$url, destfile = "rtn.xlsx", mode = 'wb', quiet = TRUE )
@@ -728,12 +736,26 @@ function(){
 
 }
 
-
-
-#* Gráfico do estoque da dívida
+#* Gráfico do resultado primário do governo central
 #* @serializer contentType list(type = "image/gif")
-#* @get /graf_estoque_divida
-function(){
+#* @get /graf_resultado_primario
+function() {
+  gera_graf_resultado_primario()
+}
+
+#* Gráfico do resultado primário do governo central
+#* @get /graf_resultado_primario_async
+function() {
+  fut <- future({gera_graf_resultado_primario()})
+
+  id <- length(futures) + 1
+  futures[[id]] <<- fut
+
+  list(id = id)
+}
+
+
+gera_graf_estoque_divida <- function(){
 
 
 
@@ -860,11 +882,27 @@ function(){
 
 }
 
-
-#* Gráfico de despesas de governo
+#* Gráfico do estoque da dívida
 #* @serializer contentType list(type = "image/gif")
-#* @get /graf_despesas_governo
-function(){
+#* @get /graf_estoque_divida
+function() {
+  gera_graf_estoque_divida()
+}
+
+#* Gráfico do estoque da dívida
+#* @get /graf_estoque_divida_async
+function() {
+  fut <- future({gera_graf_estoque_divida()})
+
+  id <- length(futures) + 1
+  futures[[id]] <<- fut
+
+  list(id = id)
+}
+
+
+
+gera_graf_despesas_governo <- function(){
 
 
   series_temporais<-
@@ -984,6 +1022,24 @@ function(){
 
 }
 
+#* Gráfico de despesas de governo
+#* @serializer contentType list(type = "image/gif")
+#* @get /graf_despesas_governo
+function() {
+  gera_graf_despesas_governo()
+}
+
+#* Gráfico de despesas de governo
+#* @get /graf_despesas_governo_async
+function() {
+  fut <- future({gera_graf_despesas_governo()})
+
+  id <- length(futures) + 1
+  futures[[id]] <<- fut
+
+  list(id = id)
+}
+
 #* @get /graf_despesas_governo.gif
 function(res){
   res$setHeader("Content-Type", "image/gif")
@@ -1006,4 +1062,20 @@ function(res){
   res$body <- readBin("/home/graf_estoque_divida.gif", "raw", file.info("/home/graf_estoque_divida.gif")$size)
   
   res
+}
+
+#* @get /result/<id>
+function(id){
+  # Recupera o future da lista global
+  fut <- futures[[as.integer(id)]]
+
+  # Apaga o future da lista global
+  futures[[as.integer(id)]] <<- NULL  
+  
+  # Retorna o resultado do future para o cliente
+  if (resolved(fut)) {
+    return(list(status = "OK" result = value(fut)))
+  } else {
+    return(list(status = "Processando"))
+  }
 }
