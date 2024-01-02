@@ -1074,7 +1074,7 @@ function(id){
   
   # Retorna o resultado do future para o cliente
   if (resolved(fut)) {
-    return(list(status = "OK" result = value(fut)))
+    return(list(status = "OK", result = value(fut)))
   } else {
     return(list(status = "Processando"))
   }
