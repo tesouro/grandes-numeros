@@ -14,7 +14,7 @@ RUN apt-get update -qq  && apt-get install -y  \
   && rm -rf /var/lib/apt/lists/* 
 
 RUN install2.r plumber && \
-    Rscript -e "install.packages(c('rvest', 'xml2', 'ckanr', 'readxl', 'tidyverse', 'RColorBrewer','devtools', 'ggrepel', 'future'))" && \
+    Rscript -e "install.packages(c('rvest', 'xml2', 'ckanr', 'readxl', 'tidyverse', 'RColorBrewer','devtools', 'ggrepel', 'future', 'promises'))" && \
     Rscript -e "library(devtools);install_github('tchiluanda/rtn');install_github('r-rust/gifski')" && \
     Rscript -e "require(devtools); install_version('gganimate', version = '1.0.7', repos = 'http://cran.us.r-project.org')"
     

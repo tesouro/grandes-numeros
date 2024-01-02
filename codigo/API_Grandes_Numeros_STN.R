@@ -11,10 +11,13 @@ library(gganimate)
 library(RColorBrewer)
 library(ggrepel)
 library(future)
+library(promises)
 
 plan(multisession, gc = TRUE)
 
 futures <- list()
+
+my_futures <- list()
 
 
 get_future_result <- function(id) {
@@ -746,10 +749,18 @@ function() {
 #* Gráfico do resultado primário do governo central
 #* @get /graf_resultado_primario_async
 function() {
-  fut <- future({gera_graf_resultado_primario()})
+  fut <- future_promise({gera_graf_resultado_primario()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- fut
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+
+  then(fut, onFulfilled = function(value) {
+    futures[[id]]$status <<- "Sucesso"
+    futures[[id]]$result <<- value
+  }, onRejected = function(reason) {
+    futures[[id]]$status <<- "Erro"
+    futures[[id]]$result <<- reason
+  })
 
   list(id = id)
 }
@@ -892,10 +903,18 @@ function() {
 #* Gráfico do estoque da dívida
 #* @get /graf_estoque_divida_async
 function() {
-  fut <- future({gera_graf_estoque_divida()})
+  fut <- future_promise({gera_graf_estoque_divida()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- fut
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+
+  then(fut, onFulfilled = function(value) {
+    futures[[id]]$status <<- "Sucesso"
+    futures[[id]]$result <<- value
+  }, onRejected = function(reason) {
+    futures[[id]]$status <<- "Erro"
+    futures[[id]]$result <<- reason
+  })
 
   list(id = id)
 }
@@ -1032,10 +1051,18 @@ function() {
 #* Gráfico de despesas de governo
 #* @get /graf_despesas_governo_async
 function() {
-  fut <- future({gera_graf_despesas_governo()})
+  fut <- future_promise({gera_graf_despesas_governo()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- fut
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+
+  then(fut, onFulfilled = function(value) {
+    futures[[id]]$status <<- "Sucesso"
+    futures[[id]]$result <<- value
+  }, onRejected = function(reason) {
+    futures[[id]]$status <<- "Erro"
+    futures[[id]]$result <<- reason
+  })
 
   list(id = id)
 }
@@ -1053,10 +1080,19 @@ gera_todos_graf_async <- function(){
 #* Gera todos gráficos async
 #* @get /graf_todos_graf_async
 function() {
-  fut <- future({gera_todos_graf_async()})
+  fut <- future_promise({gera_todos_graf_async()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- fut
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+
+  then(fut, onFulfilled = function(value) {
+    futures[[id]]$status <<- "Sucesso"
+    futures[[id]]$result <<- value
+  }, onRejected = function(reason) {
+    futures[[id]]$status <<- "Erro"
+    futures[[id]]$result <<- reason
+  })
+  
 
   list(id = id)
 }
@@ -1090,16 +1126,18 @@ function(res){
 function(id){
   # Recupera o future da lista global
   fut <- futures[[as.integer(id)]]
-  
-  # Retorna o resultado do future para o cliente
-  if (resolved(fut)) {
-    # Apaga o future da lista global
-    futures[[as.integer(id)]] <<- NULL 
-    
-    return(list(status = "OK", result = value(fut)))
+
+  print(fut)
+
+  # Se o status do fut for "SUCESSO" ou "ERRO", retorna o resultado
+  if (fut$status %in% c("Sucesso", "Erro")) {
+    status <- fut$status
+    result <- fut$result
+    return(list(status = status, result = result))
   } else {
-    return(list(status = "Processando"))
+    return(list(status = "Gerando"))
   }
+  
 }
 
 #* @get /ping
