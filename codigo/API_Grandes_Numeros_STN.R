@@ -1079,3 +1079,8 @@ function(id){
     return(list(status = "Processando"))
   }
 }
+
+#* @get /ping */
+function() {
+  "true"
+}
