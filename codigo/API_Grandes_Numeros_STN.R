@@ -12,7 +12,7 @@ library(RColorBrewer)
 library(ggrepel)
 library(future)
 
-plan(multisession)
+plan(multisession, gc = TRUE)
 
 futures <- list()
 
@@ -1040,6 +1040,28 @@ function() {
   list(id = id)
 }
 
+gera_todos_graf_async <- function(){
+  graf_despesas_governo <- gera_graf_despesas_governo()
+  graf_estoque_divida <- gera_graf_estoque_divida()
+  graf_resultado_primario <- gera_graf_resultado_primario()
+
+  list(graf_despesas_governo = graf_despesas_governo,
+       graf_estoque_divida = graf_estoque_divida,
+       graf_resultado_primario = graf_resultado_primario)
+}
+
+#* Gera todos gráficos async
+#* @get /graf_todos_graf_async
+function() {
+  fut <- future({gera_todos_graf_async()})
+
+  id <- length(futures) + 1
+  futures[[id]] <<- fut
+
+  list(id = id)
+}
+
+
 #* @get /graf_despesas_governo.gif
 function(res){
   res$setHeader("Content-Type", "image/gif")
@@ -1068,19 +1090,19 @@ function(res){
 function(id){
   # Recupera o future da lista global
   fut <- futures[[as.integer(id)]]
-
-  # Apaga o future da lista global
-  futures[[as.integer(id)]] <<- NULL  
   
   # Retorna o resultado do future para o cliente
   if (resolved(fut)) {
+    # Apaga o future da lista global
+    futures[[as.integer(id)]] <<- NULL 
+    
     return(list(status = "OK", result = value(fut)))
   } else {
     return(list(status = "Processando"))
   }
 }
 
-#* @get /ping */
+#* @get /ping
 function() {
   "true"
 }
