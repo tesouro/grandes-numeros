@@ -12,6 +12,7 @@ library(RColorBrewer)
 library(ggrepel)
 library(future)
 library(promises)
+library(base64enc)
 
 plan(multisession, gc = TRUE)
 
@@ -756,7 +757,7 @@ function() {
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
-    futures[[id]]$result <<- value
+    futures[[id]]$result <<- base64enc::base64encode(value)
   }, onRejected = function(reason) {
     futures[[id]]$status <<- "Erro"
     futures[[id]]$result <<- reason
@@ -910,7 +911,7 @@ function() {
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
-    futures[[id]]$result <<- value
+    futures[[id]]$result <<- base64enc::base64encode(value)
   }, onRejected = function(reason) {
     futures[[id]]$status <<- "Erro"
     futures[[id]]$result <<- reason
@@ -1058,7 +1059,7 @@ function() {
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
-    futures[[id]]$result <<- value
+    futures[[id]]$result <<- base64enc::base64encode(value)
   }, onRejected = function(reason) {
     futures[[id]]$status <<- "Erro"
     futures[[id]]$result <<- reason
@@ -1068,9 +1069,9 @@ function() {
 }
 
 gera_todos_graf_async <- function(){
-  graf_despesas_governo <- gera_graf_despesas_governo()
-  graf_estoque_divida <- gera_graf_estoque_divida()
-  graf_resultado_primario <- gera_graf_resultado_primario()
+  graf_despesas_governo <- base64enc::base64encode(gera_graf_despesas_governo())
+  graf_estoque_divida <- base64enc::base64encode(gera_graf_estoque_divida())
+  graf_resultado_primario <- base64enc::base64encode(gera_graf_resultado_primario())
 
   list(graf_despesas_governo = graf_despesas_governo,
        graf_estoque_divida = graf_estoque_divida,
@@ -1083,7 +1084,7 @@ function() {
   fut <- future_promise({gera_todos_graf_async()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
@@ -1127,17 +1128,35 @@ function(id){
   # Recupera o future da lista global
   fut <- futures[[as.integer(id)]]
 
-  print(fut)
+  # Percorre todos os resultados da lista global que forem mais antigos do que 1 dia
+  # e apaga da lista o $result
+  for (i in 1:length(futures)) {
+    if (futures[[i]]$data < Sys.time() - 60*60*24) {
+      futures[[i]]$result <<- NULL
+    }
+  }
 
   # Se o status do fut for "SUCESSO" ou "ERRO", retorna o resultado
   if (fut$status %in% c("Sucesso", "Erro")) {
     status <- fut$status
     result <- fut$result
+
     return(list(status = status, result = result))
   } else {
     return(list(status = "Gerando"))
   }
-  
+
+}
+
+#* @get /result/<id>/limpar
+function(id){
+  # Recupera o future da lista global
+  fut <- futures[[as.integer(id)]]
+
+  # Apaga da lista o resultado
+  futures[[as.integer(id)]]$result <<- NULL
+
+  return(list(status = "Limpo"))
 }
 
 #* @get /ping
