@@ -20,6 +20,8 @@ futures <- list()
 
 my_futures <- list()
 
+data_inicial_graficos <- "2010-01-01"
+
 
 get_future_result <- function(id) {
   return(future::value(futures[[id]]))
@@ -650,7 +652,7 @@ gera_graf_resultado_primario <- function(){
            Resultado = ifelse(Valor_12m > 0, "Positivo", "Negativo"),
            Data = paste0(Ano, " - ", meses[Mes])) %>%
     filter(!is.na(Valor_12m)) %>%
-    filter(Periodo >= "2006-01-01") # para ficar igual à série da dívida
+    filter(Periodo >= data_inicial_graficos) # para ficar igual à série da dívida
 
   ultimo_mes<- serie$Periodo[NROW(serie)]
 
@@ -839,7 +841,7 @@ gera_graf_estoque_divida <- function(){
       scale_color_manual(values = c("TRUE" = "#1E4C7A")) +
       scale_x_date(date_breaks = "1 years",
                    date_labels = "%Y",
-                   limits = c(as.Date("2006-01-01"), NA),
+                   limits = c(as.Date(data_inicial_graficos), NA),
                    expand = expand_scale(mult = c(.05, .04))) +
       coord_cartesian(
         ylim = c(0,#min(dpf$Valor_ipca),
