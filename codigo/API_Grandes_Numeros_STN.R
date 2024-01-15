@@ -690,7 +690,7 @@ gera_graf_resultado_primario <- function(){
       scale_fill_manual(values = c("Negativo" = vermelho_claro, "Positivo" = azul_claro)) +
       scale_x_date(date_breaks = "1 years",
                    date_labels = "%Y",
-                   limits = c(as.Date("2006-01-01"), NA), #"1997-12-01"
+                   limits = c(as.Date(data_inicial_graficos), NA), #"1997-12-01"
                    expand = expand_scale(mult = c(.04, .04))) +
       coord_cartesian(clip = 'off') +
       labs(x = NULL, y = NULL) +
@@ -825,7 +825,7 @@ gera_graf_estoque_divida <- function(){
              Resultado = ifelse(Valor_12m > 0, "Positivo", "Negativo"),
              Data = paste0(Ano, " - ", meses[Mes])) %>%
       filter(!is.na(Valor_12m)) %>%
-      filter(Periodo >= "2006-01-01")
+      filter(Periodo >= data_inicial_graficos)
 
 
     ipca <- serie %>% select(Periodo, IPCA)
