@@ -20,7 +20,8 @@ futures <- list()
 
 my_futures <- list()
 
-data_inicial_graficos <- "2010-01-01"
+ano_inicial_graficos <- 2010
+data_inicial_graficos <- paste0(ano_inicial_graficos, "-01-01")
 
 
 get_future_result <- function(id) {
@@ -793,7 +794,8 @@ gera_graf_estoque_divida <- function(){
            Mes_num = match(Mes, meses_red),
            Periodo = as.Date(paste0(Ano, "-",
                                     if_else(Mes_num < 10, "0", ""), Mes_num, "-",
-                                    "01")))
+                                    "01"))) %>%
+    filter(Periodo >= data_inicial_graficos)
 
   ultimo_mes<- dpf$Periodo[NROW(dpf)]
 
@@ -940,7 +942,7 @@ gera_graf_despesas_governo <- function(){
 
   series_temporais<-
   series_temporais %>%
-    filter(lubridate::year(Data)>=2010)
+    filter(lubridate::year(Data)>=ano_inicial_graficos)
 
   ultimo_mes<-as.character(series_temporais$Data[NROW(series_temporais)])
 
