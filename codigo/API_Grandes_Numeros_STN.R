@@ -940,7 +940,7 @@ gera_graf_despesas_governo <- function(){
 
   series_temporais<-
   series_temporais %>%
-    filter(lubridate::year(Data)>=2009)
+    filter(lubridate::year(Data)>=2010)
 
   ultimo_mes<-as.character(series_temporais$Data[NROW(series_temporais)])
 
