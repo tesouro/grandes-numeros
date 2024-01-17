@@ -1130,15 +1130,13 @@ function() {
   id <- length(futures) + 1
   futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
-  fut %...>%
-    (function(value) {
-      futures[[id]]$status <<- "Sucesso"
-      futures[[id]]$result <<- value
-    }) %...!% 
-    (function(error) {
-      futures[[id]]$status <<- "Erro"
-      futures[[id]]$result <<- error
-    }) 
+  then(fut, onFulfilled = function(value) {
+    futures[[id]]$status <<- "Sucesso"
+    futures[[id]]$result <<- base64enc::base64encode(value)
+  }, onRejected = function(reason) {
+    futures[[id]]$status <<- "Erro"
+    futures[[id]]$result <<- reason
+  })
 
   list(id = id)
 }
