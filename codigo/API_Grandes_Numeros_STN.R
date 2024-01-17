@@ -13,6 +13,7 @@ library(ggrepel)
 library(future)
 library(promises)
 library(base64enc)
+library(magick)
 
 plan(multisession, gc = TRUE)
 
@@ -20,9 +21,54 @@ futures <- list()
 
 my_futures <- list()
 
-ano_inicial_graficos <- 2010
+inicio_animacao <- 2010
+
+ano_inicial_graficos <- 2006
 data_inicial_graficos <- paste0(ano_inicial_graficos, "-01-01")
 
+ano_inicial_despesas_governo <- 2009
+
+cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_frames_ano) {
+
+  meses_pular <- (inicio_animacao - ano_inicial)*qtd_frames_ano
+
+  gif <- image_read(file_periodo)
+  info <- image_info(gif)
+
+  
+
+  print(paste0("inicio_animacao: ", meses_pular))
+  print(paste0("ano_inicial: ", meses_pular))
+  print(paste0("meses_pular: ", meses_pular))
+  print(paste0("length(gif): ", length(gif)))
+  print(info)
+  
+
+  # Cortar os primeiros frames
+  gif_cortado <- gif[-(1:meses_pular)]
+
+  print("gif cortado.")
+
+  info_cortado <- image_info(gif_cortado)
+  print("info do gif cortado")
+  print(info_cortado)
+
+  print(paste0("gravando no diretorio ", diretorio_final))
+
+  image_write(gif_cortado, diretorio_final)
+
+  print(paste0("gif gravado em ", diretorio_final))
+
+  con <- file(diretorio_final, "rb")
+
+  img <- readBin(con, "raw", file.info(diretorio_final)$size)
+
+  close(con)
+
+  print(paste0("gif lido em ", diretorio_final))
+
+  img
+}
 
 get_future_result <- function(id) {
   return(future::value(futures[[id]]))
@@ -724,23 +770,12 @@ gera_graf_resultado_primario <- function(){
       animate(gif_linhas, nframes = round(nrow(serie)/2), height = 488, width = 668,
               renderer = gifski_renderer(loop = FALSE)) #type = "cairo"
 
-
     anim_save(file_periodo, anim_graf)
   }
 
-
-  con <- file(file_periodo, "rb")
-
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_resultado_primario.gif")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  close(con)
+  img <- cropa_salva_gif(file_periodo, "/home/graf_resultado_primario.gif", ano_inicial_graficos, 6)
 
   img
-
-
 }
 
 #* Gráfico do resultado primário do governo central
@@ -885,15 +920,8 @@ gera_graf_estoque_divida <- function(){
     anim_save(file_periodo, animation = anima)
   }
 
-  con <- file(file_periodo, "rb")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_estoque_divida.gif")
-
-  close(con)
-
+  img <- cropa_salva_gif(file_periodo, "/home/graf_estoque_divida.gif", ano_inicial_graficos, 6)
+  
   img
 
 }
@@ -942,13 +970,13 @@ gera_graf_despesas_governo <- function(){
 
   series_temporais<-
   series_temporais %>%
-    filter(lubridate::year(Data)>=ano_inicial_graficos)
+    filter(lubridate::year(Data)>=ano_inicial_despesas_governo)
 
   ultimo_mes<-as.character(series_temporais$Data[NROW(series_temporais)])
 
   file_periodo<- paste0("despesas",ultimo_mes,".gif")
 
-  if (!file.exists(file_periodo)){
+  if (!file.exists(file_periodo)){  
 
     paleta <- brewer.pal(6, "Set3")
     # ajeitar cores
@@ -1029,18 +1057,13 @@ gera_graf_despesas_governo <- function(){
     anim_save(file_periodo, animation = anima)
 
 
-
   }
 
+  print(paste0("gerou gif povisório: ", file_periodo))
 
-  con <- file(file_periodo, "rb")
+  img <- cropa_salva_gif(file_periodo, "/home/graf_despesas_governo.gif", ano_inicial_despesas_governo, 12)
 
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_despesas_governo.gif")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  close(con)
+  print("retornando gif")
 
   img
 
@@ -1083,7 +1106,7 @@ gera_todos_graf_async <- function(){
 }
 
 #* Gera todos gráficos async
-#* @get /graf_todos_graf_async
+#* @get / 
 function() {
   fut <- future_promise({gera_todos_graf_async()})
 
