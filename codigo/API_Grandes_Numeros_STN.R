@@ -1106,7 +1106,7 @@ gera_todos_graf_async <- function(){
 }
 
 #* Gera todos gráficos async
-#* @get / 
+#* @get /graf_todos_graf_async
 function() {
   fut <- future_promise({gera_todos_graf_async()})
 
