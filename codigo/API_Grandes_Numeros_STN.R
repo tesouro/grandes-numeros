@@ -13,6 +13,7 @@ library(ggrepel)
 library(future)
 library(promises)
 library(base64enc)
+library(gifski)
 library(magick)
 
 plan(multisession, gc = TRUE)
@@ -28,13 +29,16 @@ data_inicial_graficos <- paste0(ano_inicial_graficos, "-01-01")
 
 ano_inicial_despesas_governo <- 2009
 
+
+
 cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_frames_ano) {
+  print(diretorio_final)
 
   meses_pular <- (inicio_animacao - ano_inicial)*qtd_frames_ano
 
   gif <- image_read(file_periodo)
   info <- image_info(gif)
-
+  tamanho <- length(gif)
   
 
   print(paste0("inicio_animacao: ", meses_pular))
@@ -45,27 +49,34 @@ cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_fram
   
 
   # Cortar os primeiros frames
-  gif_cortado <- gif[-(1:meses_pular)]
+  gif_cortado <- gif[meses_pular:tamanho]
+
+  gif_cortado_animado <- image_animate(gif_cortado, optimize=TRUE, dispose="previous")
 
   print("gif cortado.")
 
-  info_cortado <- image_info(gif_cortado)
-  print("info do gif cortado")
-  print(info_cortado)
+  # Escreve a imagem em um arquivo temporário
+  temp_file <- tempfile(fileext = ".gif")
 
-  print(paste0("gravando no diretorio ", diretorio_final))
+  print(paste0("Arquivo temporário: ", temp_file))
 
-  image_write(gif_cortado, diretorio_final)
+  magick::image_write(gif_cortado_animado, temp_file, format="gif")
 
-  print(paste0("gif gravado em ", diretorio_final))
+  print("Gravado o gif.")
 
-  con <- file(diretorio_final, "rb")
+  # Abre a conexão com o arquivo
+  con <- file(temp_file, "rb")
 
-  img <- readBin(con, "raw", file.info(diretorio_final)$size)
+  # Lê o arquivo em bytes
+  img <- readBin(con, "raw", n = file.info(temp_file)$size)
 
+  print("Lido o gif")
+
+  # Fecha a conexão com o arquivo
   close(con)
 
-  print(paste0("gif lido em ", diretorio_final))
+  # Remove o arquivo temporário
+  file.remove(temp_file)
 
   img
 }
@@ -1079,9 +1090,9 @@ function() {
 #* Gráfico de despesas de governo
 #* @get /graf_despesas_governo_async
 function() {
-  fut <- future_promise({gera_graf_despesas_governo()})
-
   id <- length(futures) + 1
+  fut <- future_promise({gera_graf_despesas_governo(id)})
+
   futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
 
   then(fut, onFulfilled = function(value) {
@@ -1095,10 +1106,16 @@ function() {
   list(id = id)
 }
 
-gera_todos_graf_async <- function(){
+gera_todos_graf_async <- function(i){
+  print("graf_despesas_governo")
   graf_despesas_governo <- base64enc::base64encode(gera_graf_despesas_governo())
+  
+  print("graf_estoque_divida")
   graf_estoque_divida <- base64enc::base64encode(gera_graf_estoque_divida())
+  
+  print("graf_resultado_primario")
   graf_resultado_primario <- base64enc::base64encode(gera_graf_resultado_primario())
+
 
   list(graf_despesas_governo = graf_despesas_governo,
        graf_estoque_divida = graf_estoque_divida,
@@ -1113,14 +1130,15 @@ function() {
   id <- length(futures) + 1
   futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
-  then(fut, onFulfilled = function(value) {
-    futures[[id]]$status <<- "Sucesso"
-    futures[[id]]$result <<- value
-  }, onRejected = function(reason) {
-    futures[[id]]$status <<- "Erro"
-    futures[[id]]$result <<- reason
-  })
-  
+  fut %...>%
+    (function(value) {
+      futures[[id]]$status <<- "Sucesso"
+      futures[[id]]$result <<- value
+    }) %...!% 
+    (function(error) {
+      futures[[id]]$status <<- "Erro"
+      futures[[id]]$result <<- error
+    }) 
 
   list(id = id)
 }
@@ -1150,6 +1168,11 @@ function(res){
   res
 }
 
+#* @get /futures
+function() {
+  futures
+}
+
 #* @get /result/<id>
 function(id){
   # Recupera o future da lista global
@@ -1158,7 +1181,7 @@ function(id){
   # Percorre todos os resultados da lista global que forem mais antigos do que 1 dia
   # e apaga da lista o $result
   for (i in 1:length(futures)) {
-    if (futures[[i]]$data < Sys.time() - 60*60*24) {
+    if (futures[[i]]$data < Sys.time() - 60*60*24 ) {
       futures[[i]]$result <<- NULL
     }
   }
@@ -1189,4 +1212,9 @@ function(id){
 #* @get /ping
 function() {
   "true"
+}
+
+#* @get /log/<id>
+function(id) {
+  readLines(paste0("/home/log_", id, ".txt"))
 }
