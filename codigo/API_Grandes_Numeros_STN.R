@@ -40,37 +40,23 @@ cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_fram
   info <- image_info(gif)
   tamanho <- length(gif)
   
-
-  print(paste0("inicio_animacao: ", meses_pular))
-  print(paste0("ano_inicial: ", meses_pular))
-  print(paste0("meses_pular: ", meses_pular))
-  print(paste0("length(gif): ", length(gif)))
-  print(info)
   
 
   # Cortar os primeiros frames
   gif_cortado <- gif[meses_pular:tamanho]
 
-  gif_cortado_animado <- image_animate(gif_cortado, loop=0, optimize=TRUE, dispose="previous")
-
-  print("gif cortado.")
+  gif_cortado_animado <- image_animate(gif_cortado, loop=1, optimize=TRUE, dispose="previous")
 
   # Escreve a imagem em um arquivo temporário
   temp_file <- tempfile(fileext = ".gif")
 
-  print(paste0("Arquivo temporário: ", temp_file))
-
   magick::image_write(gif_cortado_animado, temp_file, format="gif")
-
-  print("Gravado o gif.")
 
   # Abre a conexão com o arquivo
   con <- file(temp_file, "rb")
 
   # Lê o arquivo em bytes
   img <- readBin(con, "raw", n = file.info(temp_file)$size)
-
-  print("Lido o gif")
 
   # Fecha a conexão com o arquivo
   close(con)
@@ -1070,12 +1056,8 @@ gera_graf_despesas_governo <- function(){
 
   }
 
-  print(paste0("gerou gif povisório: ", file_periodo))
-
   img <- cropa_salva_gif(file_periodo, "/home/graf_despesas_governo.gif", ano_inicial_despesas_governo, 12)
-
-  print("retornando gif")
-
+  
   img
 
 }
