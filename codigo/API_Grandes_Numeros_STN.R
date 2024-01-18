@@ -1132,7 +1132,7 @@ function() {
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
-    futures[[id]]$result <<- base64enc::base64encode(value)
+    futures[[id]]$result <<- value
   }, onRejected = function(reason) {
     futures[[id]]$status <<- "Erro"
     futures[[id]]$result <<- reason
