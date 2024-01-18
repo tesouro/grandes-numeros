@@ -13,6 +13,8 @@ library(ggrepel)
 library(future)
 library(promises)
 library(base64enc)
+library(gifski)
+library(magick)
 
 plan(multisession, gc = TRUE)
 
@@ -20,6 +22,50 @@ futures <- list()
 
 my_futures <- list()
 
+inicio_animacao <- 2010
+
+ano_inicial_graficos <- 2006
+data_inicial_graficos <- paste0(ano_inicial_graficos, "-01-01")
+
+ano_inicial_despesas_governo <- 2009
+
+
+
+cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_frames_ano) {
+  print(diretorio_final)
+
+  meses_pular <- (inicio_animacao - ano_inicial)*qtd_frames_ano
+
+  gif <- image_read(file_periodo)
+  info <- image_info(gif)
+  tamanho <- length(gif)
+  
+  
+
+  # Cortar os primeiros frames
+  gif_cortado <- gif[(meses_pular + 1):tamanho]
+
+  gif_cortado_animado <- image_animate(gif_cortado, loop=1, optimize=TRUE, dispose="previous")
+
+  # Escreve a imagem em um arquivo temporário
+  temp_file <- tempfile(fileext = ".gif")
+
+  magick::image_write(gif_cortado_animado, temp_file, format="gif")
+
+  # Abre a conexão com o arquivo
+  con <- file(temp_file, "rb")
+
+  # Lê o arquivo em bytes
+  img <- readBin(con, "raw", n = file.info(temp_file)$size)
+
+  # Fecha a conexão com o arquivo
+  close(con)
+
+  # Remove o arquivo temporário
+  file.remove(temp_file)
+
+  img
+}
 
 get_future_result <- function(id) {
   return(future::value(futures[[id]]))
@@ -650,7 +696,7 @@ gera_graf_resultado_primario <- function(){
            Resultado = ifelse(Valor_12m > 0, "Positivo", "Negativo"),
            Data = paste0(Ano, " - ", meses[Mes])) %>%
     filter(!is.na(Valor_12m)) %>%
-    filter(Periodo >= "2006-01-01") # para ficar igual à série da dívida
+    filter(Periodo >= data_inicial_graficos) # para ficar igual à série da dívida
 
   ultimo_mes<- serie$Periodo[NROW(serie)]
 
@@ -688,7 +734,7 @@ gera_graf_resultado_primario <- function(){
       scale_fill_manual(values = c("Negativo" = vermelho_claro, "Positivo" = azul_claro)) +
       scale_x_date(date_breaks = "1 years",
                    date_labels = "%Y",
-                   limits = c(as.Date("2006-01-01"), NA), #"1997-12-01"
+                   limits = c(as.Date(data_inicial_graficos), NA), #"1997-12-01"
                    expand = expand_scale(mult = c(.04, .04))) +
       coord_cartesian(clip = 'off') +
       labs(x = NULL, y = NULL) +
@@ -721,23 +767,12 @@ gera_graf_resultado_primario <- function(){
       animate(gif_linhas, nframes = round(nrow(serie)/2), height = 488, width = 668,
               renderer = gifski_renderer(loop = FALSE)) #type = "cairo"
 
-
     anim_save(file_periodo, anim_graf)
   }
 
-
-  con <- file(file_periodo, "rb")
-
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_resultado_primario.gif")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  close(con)
+  img <- cropa_salva_gif(file_periodo, "/home/graf_resultado_primario.gif", ano_inicial_graficos, 6)
 
   img
-
-
 }
 
 #* Gráfico do resultado primário do governo central
@@ -791,7 +826,8 @@ gera_graf_estoque_divida <- function(){
            Mes_num = match(Mes, meses_red),
            Periodo = as.Date(paste0(Ano, "-",
                                     if_else(Mes_num < 10, "0", ""), Mes_num, "-",
-                                    "01")))
+                                    "01"))) %>%
+    filter(Periodo >= data_inicial_graficos)
 
   ultimo_mes<- dpf$Periodo[NROW(dpf)]
 
@@ -823,7 +859,7 @@ gera_graf_estoque_divida <- function(){
              Resultado = ifelse(Valor_12m > 0, "Positivo", "Negativo"),
              Data = paste0(Ano, " - ", meses[Mes])) %>%
       filter(!is.na(Valor_12m)) %>%
-      filter(Periodo >= "2006-01-01")
+      filter(Periodo >= data_inicial_graficos)
 
 
     ipca <- serie %>% select(Periodo, IPCA)
@@ -839,7 +875,7 @@ gera_graf_estoque_divida <- function(){
       scale_color_manual(values = c("TRUE" = "#1E4C7A")) +
       scale_x_date(date_breaks = "1 years",
                    date_labels = "%Y",
-                   limits = c(as.Date("2006-01-01"), NA),
+                   limits = c(as.Date(data_inicial_graficos), NA),
                    expand = expand_scale(mult = c(.05, .04))) +
       coord_cartesian(
         ylim = c(0,#min(dpf$Valor_ipca),
@@ -881,15 +917,8 @@ gera_graf_estoque_divida <- function(){
     anim_save(file_periodo, animation = anima)
   }
 
-  con <- file(file_periodo, "rb")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_estoque_divida.gif")
-
-  close(con)
-
+  img <- cropa_salva_gif(file_periodo, "/home/graf_estoque_divida.gif", ano_inicial_graficos, 6)
+  
   img
 
 }
@@ -938,13 +967,13 @@ gera_graf_despesas_governo <- function(){
 
   series_temporais<-
   series_temporais %>%
-    filter(lubridate::year(Data)>=2009)
+    filter(lubridate::year(Data)>=ano_inicial_despesas_governo)
 
   ultimo_mes<-as.character(series_temporais$Data[NROW(series_temporais)])
 
   file_periodo<- paste0("despesas",ultimo_mes,".gif")
 
-  if (!file.exists(file_periodo)){
+  if (!file.exists(file_periodo)){  
 
     paleta <- brewer.pal(6, "Set3")
     # ajeitar cores
@@ -1025,19 +1054,10 @@ gera_graf_despesas_governo <- function(){
     anim_save(file_periodo, animation = anima)
 
 
-
   }
 
-
-  con <- file(file_periodo, "rb")
-
-  # Copiar o arquivo para o /home
-  file.copy(file_periodo, "/home/graf_despesas_governo.gif")
-
-  img <- readBin(con, "raw", file.info(file_periodo)$size)
-
-  close(con)
-
+  img <- cropa_salva_gif(file_periodo, "/home/graf_despesas_governo.gif", ano_inicial_despesas_governo, 12)
+  
   img
 
 }
@@ -1052,9 +1072,9 @@ function() {
 #* Gráfico de despesas de governo
 #* @get /graf_despesas_governo_async
 function() {
-  fut <- future_promise({gera_graf_despesas_governo()})
-
   id <- length(futures) + 1
+  fut <- future_promise({gera_graf_despesas_governo(id)})
+
   futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
 
   then(fut, onFulfilled = function(value) {
@@ -1068,10 +1088,16 @@ function() {
   list(id = id)
 }
 
-gera_todos_graf_async <- function(){
+gera_todos_graf_async <- function(i){
+  print("graf_despesas_governo")
   graf_despesas_governo <- base64enc::base64encode(gera_graf_despesas_governo())
+  
+  print("graf_estoque_divida")
   graf_estoque_divida <- base64enc::base64encode(gera_graf_estoque_divida())
+  
+  print("graf_resultado_primario")
   graf_resultado_primario <- base64enc::base64encode(gera_graf_resultado_primario())
+
 
   list(graf_despesas_governo = graf_despesas_governo,
        graf_estoque_divida = graf_estoque_divida,
@@ -1093,7 +1119,6 @@ function() {
     futures[[id]]$status <<- "Erro"
     futures[[id]]$result <<- reason
   })
-  
 
   list(id = id)
 }
@@ -1123,15 +1148,26 @@ function(res){
   res
 }
 
+#* @get /futures
+function() {
+  futures
+}
+
 #* @get /result/<id>
-function(id){
+function(res, id){
+  # Verifica se o id existe na lista global, se não existir, retorna erro com status 404
+  if (as.integer(id) > length(futures)) {
+    res$status <- 404
+    return(list(status = "Erro", result = "ID não encontrado"))
+  }
+
   # Recupera o future da lista global
   fut <- futures[[as.integer(id)]]
 
   # Percorre todos os resultados da lista global que forem mais antigos do que 1 dia
   # e apaga da lista o $result
   for (i in 1:length(futures)) {
-    if (futures[[i]]$data < Sys.time() - 60*60*24) {
+    if (futures[[i]]$data < Sys.time() - 60*60*24 ) {
       futures[[i]]$result <<- NULL
     }
   }
@@ -1140,6 +1176,10 @@ function(id){
   if (fut$status %in% c("Sucesso", "Erro")) {
     status <- fut$status
     result <- fut$result
+
+    if (status == "Erro") {
+      res$status <- 500
+    }
 
     return(list(status = status, result = result))
   } else {
@@ -1162,4 +1202,9 @@ function(id){
 #* @get /ping
 function() {
   "true"
+}
+
+#* @get /log/<id>
+function(id) {
+  readLines(paste0("/home/log_", id, ".txt"))
 }
