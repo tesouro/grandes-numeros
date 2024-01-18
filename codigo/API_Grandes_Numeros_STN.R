@@ -1154,7 +1154,13 @@ function() {
 }
 
 #* @get /result/<id>
-function(id){
+function(res, id){
+  # Verifica se o id existe na lista global, se não existir, retorna erro com status 404
+  if (as.integer(id) > length(futures)) {
+    res$status <- 404
+    return(list(status = "Erro", result = "ID não encontrado"))
+  }
+
   # Recupera o future da lista global
   fut <- futures[[as.integer(id)]]
 
@@ -1170,6 +1176,10 @@ function(id){
   if (fut$status %in% c("Sucesso", "Erro")) {
     status <- fut$status
     result <- fut$result
+
+    if (status == "Erro") {
+      res$status <- 500
+    }
 
     return(list(status = status, result = result))
   } else {
