@@ -51,7 +51,7 @@ cropa_salva_gif <- function(file_periodo, diretorio_final, ano_inicial, qtd_fram
   # Cortar os primeiros frames
   gif_cortado <- gif[meses_pular:tamanho]
 
-  gif_cortado_animado <- image_animate(gif_cortado, optimize=TRUE, dispose="previous")
+  gif_cortado_animado <- image_animate(gif_cortado, loop=0, optimize=TRUE, dispose="previous")
 
   print("gif cortado.")
 
