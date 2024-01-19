@@ -867,6 +867,15 @@ gera_graf_estoque_divida <- function(){
       left_join(ipca) %>%
       mutate(Valor_ipca = Valor * IPCA)
 
+    print("dpf")
+    print(dpf)
+
+    label_inicial <- format(round(dpf$Valor_ipca[1]/1000, 2),
+                               big.mark = ".",
+                               decimal.mark = ",")
+
+    label_inicial <- paste0(" ", label_inicial, " ")
+    
     grafico_linha_dpf <- ggplot(dpf, aes(x = Periodo, y = Valor_ipca, color = TRUE, group = 1)) +
       geom_area(fill = "#6cb2d2", color = NA) +
       geom_line(size = 1) +
@@ -883,16 +892,14 @@ gera_graf_estoque_divida <- function(){
         clip = "on") + # ponto e valor iniciais fixos a seguit
       geom_point(size = 3, shape = 21, fill = "#f0f5f7",
                  x = dpf$Periodo[1], y = dpf$Valor_ipca[1]) +
-      geom_text(x = dpf$Periodo[1] - 100, y = dpf$Valor_ipca[1] + 50,
-                label = format(round(dpf$Valor_ipca[1]/1000, 2),
-                               big.mark = ".",
-                               decimal.mark = ","),
+      geom_text(x = dpf$Periodo[1] - 100, y = dpf$Valor_ipca[1] + 200,
+                label = label_inicial,
                 size = 7, fontface = 'plain', family = "Open Sans SemiBold") + # fim vlrs iniciais
       labs(x = NULL, y = NULL) +
-      geom_text(aes(x = Periodo + 200,
-                    label = format(round(Valor_ipca/1000, 2),
+      geom_text(aes(x = Periodo + 220, y = Valor_ipca + 200,
+                    label = paste0(" ", format(round(Valor_ipca/1000, 2),
                                    big.mark = ".",
-                                   decimal.mark = ",")),
+                                   decimal.mark = ","), " ")),
                 size = 7, fontface = 'plain', family = "Open Sans SemiBold") +
       tema() +
       theme(legend.position = 'none',
