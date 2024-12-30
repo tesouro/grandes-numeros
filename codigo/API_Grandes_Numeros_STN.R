@@ -679,12 +679,26 @@ gera_graf_resultado_primario <- function(){
   download.file(recurso_TT$url, destfile = "rtn.xlsx", mode = 'wb', quiet = TRUE )
   tabela <- read_excel("rtn.xlsx", sheet = "1.1-A", skip = 4)
 
+  # Print tabela
+  tabela
+
   meses <- c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
+  
+  serie_filtrada <- serie <- tabela %>%
+    rename(rotulos = 1) %>%
+    mutate(rotulos = str_trim(rotulos)) %>%  # Remove espaços em branco extras
+    mutate(rotulos = str_to_upper(rotulos)) %>%  # Converte para maiúsculas
+    filter(str_detect(rotulos, "5. RESULTADO PRIM") |
+          str_detect(rotulos, "DEFLATOR - IPCA"))  # Converte strings de busca 
+
   serie <- tabela %>%
     rename(rotulos = 1) %>%
-    filter(str_detect(rotulos, "5. RESULTADO PRIMÁRIO") |
+    filter(str_detect(rotulos, "5. RESULTADO PRIM") |
              str_detect(rotulos, "Deflator - IPCA")) %>%
-    mutate(rotulos = c("Valor", "IPCA")) %>%
+    mutate(rotulos = case_when(
+      str_detect(rotulos, "5. RESULTADO PRIM") ~ "Valor",
+      str_detect(rotulos, "Deflator - IPCA") ~ "IPCA"
+    )) %>%
     gather(-1, key = "Periodo", value = "Valores") %>%
     spread(key = rotulos, value = Valores) %>%
     mutate(Valor = as.numeric(Valor),
