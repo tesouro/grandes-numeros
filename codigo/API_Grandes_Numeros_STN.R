@@ -2,11 +2,11 @@
 
 library(ckanr)
 library(readxl)
-library(utils)
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 library(readr)
 library(stringr)
-#library(rtn)
 library(gganimate)
 library(RColorBrewer)
 library(ggrepel)
@@ -740,7 +740,7 @@ gera_graf_resultado_primario <- function(){
     vermelho_claro <- "#ee7576"
     azul_claro     <- "#2c90bf" # "#87b1d4"
     grafico_linha <- ggplot(serie, aes(x = Periodo, y = Valor_12m, color = Resultado, fill = Resultado, group = 1)) +
-      geom_area(aes(group = Grupos)) +
+      geom_area(aes(group = Grupos), stat = "identity") +
       geom_line(size = 1) +
       geom_point(size = 3, shape = 21, fill = "#f0f5f7") +
       geom_hline(yintercept = 0, color = '#f0f5f7', size = 1) +
@@ -802,7 +802,7 @@ function() {
   fut <- future_promise({gera_graf_resultado_primario()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
@@ -891,7 +891,7 @@ gera_graf_estoque_divida <- function(){
     label_inicial <- paste0(" ", label_inicial, " ")
     
     grafico_linha_dpf <- ggplot(dpf, aes(x = Periodo, y = Valor_ipca, color = TRUE, group = 1)) +
-      geom_area(fill = "#6cb2d2", color = NA) +
+      geom_area(fill = "#6cb2d2", color = NA, stat = "identity") +
       geom_line(size = 1) +
       #geom_hline(yintercept = 0, color = '#f0f5f7', size = 1) +
       geom_point(size = 3, shape = 21, fill = "#f0f5f7") +
@@ -957,7 +957,7 @@ function() {
   fut <- future_promise({gera_graf_estoque_divida()})
 
   id <- length(futures) + 1
-  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
@@ -1094,9 +1094,9 @@ function() {
 #* @get /graf_despesas_governo_async
 function() {
   id <- length(futures) + 1
-  fut <- future_promise({gera_graf_despesas_governo(id)})
+  fut <- future_promise({gera_graf_despesas_governo()})
 
-  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL)
+  futures[[id]] <<- list(fvalue = fut, status = "Gerando", result = NULL, data = Sys.time())
 
   then(fut, onFulfilled = function(value) {
     futures[[id]]$status <<- "Sucesso"
@@ -1187,8 +1187,8 @@ function(res, id){
 
   # Percorre todos os resultados da lista global que forem mais antigos do que 1 dia
   # e apaga da lista o $result
-  for (i in 1:length(futures)) {
-    if (futures[[i]]$data < Sys.time() - 60*60*24 ) {
+  for (i in seq_along(futures)) {
+    if (!is.null(futures[[i]]$data) && futures[[i]]$data < Sys.time() - 60*60*24 ) {
       futures[[i]]$result <<- NULL
     }
   }
